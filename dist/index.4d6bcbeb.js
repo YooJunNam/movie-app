@@ -685,16 +685,22 @@ parcelHelpers.defineInteropFlag(exports);
 var _jun = require("../core/jun");
 var _headline = require("../components/Headline");
 var _headlineDefault = parcelHelpers.interopDefault(_headline);
+var _search = require("../components/Search");
+var _searchDefault = parcelHelpers.interopDefault(_search);
+var _movieList = require("../components/MovieList");
+var _movieListDefault = parcelHelpers.interopDefault(_movieList);
 class Home extends (0, _jun.Component) {
     render() {
         const headline = new (0, _headlineDefault.default)().el;
+        const search = new (0, _searchDefault.default)().el;
+        const movieList = new (0, _movieListDefault.default)().el;
         this.el.classList.add("container");
-        this.el.append(headline);
+        this.el.append(headline, search, movieList);
     }
 }
 exports.default = Home;
 
-},{"../core/jun":"1dl2B","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","../components/Headline":"gaVgo"}],"gaVgo":[function(require,module,exports) {
+},{"../core/jun":"1dl2B","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","../components/Headline":"gaVgo","../components/Search":"jqPPz","../components/MovieList":"8UDl3"}],"gaVgo":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 var _jun = require("../core/jun");
@@ -717,6 +723,116 @@ class Headline extends (0, _jun.Component) {
     }
 }
 exports.default = Headline;
+
+},{"../core/jun":"1dl2B","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"jqPPz":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+var _jun = require("../core/jun");
+var _movie = require("../store/movie");
+var _movieDefault = parcelHelpers.interopDefault(_movie);
+class Search extends (0, _jun.Component) {
+    render() {
+        this.el.classList.add("search");
+        this.el.innerHTML = /* html */ `
+        <input placeholder = 'Enter the movie title to search!'/>
+        <button class="btn btn-primary">Search!</button>
+        `;
+        const inputEl = this.el.querySelector("input");
+        inputEl.addEventListener("input", ()=>{
+            (0, _movieDefault.default).state.searchText = inputEl.value;
+        });
+        inputEl.addEventListener("keydown", (event)=>{
+            if (event.key === "Enter" && (0, _movieDefault.default).state.searchText.trim()) (0, _movie.searchMovies)(1);
+        });
+        const btnEl = this.el.querySelector(".btn");
+        btnEl.addEventListener("click", ()=>{
+            if ((0, _movieDefault.default).state.searchText.trim()) (0, _movie.searchMovies)(1);
+        });
+    }
+}
+exports.default = Search;
+
+},{"../core/jun":"1dl2B","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","../store/movie":"kq1bo"}],"kq1bo":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "searchMovies", ()=>searchMovies);
+var _jun = require("../core/jun");
+const store = new (0, _jun.Store)({
+    searchText: "",
+    page: 1,
+    movies: []
+});
+exports.default = store;
+const searchMovies = async (page)=>{
+    if (page === 1) {
+        store.state.page = 1;
+        store.state.movies = [];
+    }
+    const res = await fetch(`http://www.omdbapi.com?apikey=7035c60c&s=${store.state.searchText}&page=${page}`);
+    const { Search  } = await res.json();
+    store.state.movies = [
+        ...store.state.movies,
+        ...Search
+    ];
+};
+
+},{"../core/jun":"1dl2B","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"8UDl3":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+var _jun = require("../core/jun");
+var _movie = require("../store/movie");
+var _movieDefault = parcelHelpers.interopDefault(_movie);
+var _movieItem = require("./MovieItem");
+var _movieItemDefault = parcelHelpers.interopDefault(_movieItem);
+class MovieList extends (0, _jun.Component) {
+    constructor(){
+        super();
+        (0, _movieDefault.default).subscribe("movies", ()=>{
+            this.render();
+        });
+    }
+    render() {
+        this.el.classList.add("movie-list");
+        this.el.innerHTML = /* html */ `
+        <div class='movies'></div>
+        `;
+        const moviesEl = this.el.querySelector(".movies");
+        moviesEl.append(...(0, _movieDefault.default).state.movies.map((movie)=>new (0, _movieItemDefault.default)({
+                movie
+            }).el));
+    }
+}
+exports.default = MovieList;
+
+},{"../core/jun":"1dl2B","../store/movie":"kq1bo","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","./MovieItem":"fAzE8"}],"fAzE8":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+var _jun = require("../core/jun");
+class MovieItem extends (0, _jun.Component) {
+    constructor(props){
+        super({
+            props,
+            tagName: "a"
+        });
+    }
+    render() {
+        const { movie  } = this.props;
+        this.el.setAttribute("href", `#/movie?id=${movie.imdbID}`);
+        this.el.classList.add("movie");
+        this.el.style.backgroundImage = `url(${movie.Poster})`;
+        this.el.innerHTML = /* html */ `
+        <div class="info">
+        <div class="year">
+        ${movie.Year}
+        </div>
+        <div class="title">
+        ${movie.Title}
+        </div>
+        </div>
+        `;
+    }
+}
+exports.default = MovieItem;
 
 },{"../core/jun":"1dl2B","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["8TtF2","gLLPy"], "gLLPy", "parcelRequire6588")
 
